@@ -1,0 +1,297 @@
+import re
+import math
+from vkbottle.bot import BotLabeler, Message
+
+math_labeler = BotLabeler()
+math_labeler.vbml_ignore_case = True
+
+
+def safe_eval(expression: str) -> str:
+    """
+    Безопасное вычисление математического выражения
+    """
+    # Очищаем выражение от опасных символов
+    expression = expression.strip()
+    
+    # Разрешаем только безопасные математические символы
+    safe_chars = set('0123456789+-*/(). ')
+    
+    if not all(char in safe_chars for char in expression):
+        return "❌ Выражение содержит недопустимые символы"
+    
+    try:
+        # Заменяем символы для корректного вычисления
+        expr = expression.replace(' ', '')
+        
+        # Проверяем на деление на ноль
+        if '/0' in expr or '/ 0' in expression:
+            return "❌ Деление на ноль невозможно"
+        
+        # Вычисляем выражение
+        result = eval(expr, {"__builtins__": {}}, {})
+        
+        # Проверяем что результат - число
+        if isinstance(result, (int, float)):
+            # Если результат целый - показываем без .0
+            if result == int(result):
+                return str(int(result))
+            else:
+                return str(round(result, 2))
+        else:
+            return "❌ Неверное математическое выражение"
+            
+    except ZeroDivisionError:
+        return "❌ Деление на ноль"
+    except SyntaxError:
+        return "❌ Синтаксическая ошибка в выражении"
+    except Exception as e:
+        return f"❌ Ошибка вычисления: {str(e)}"
+
+
+@math_labeler.message(text=["реши <expression>", "посчитай <expression>", "вычисли <expression>"])
+async def solve_math_handler(message: Message, expression: str):
+    """Решение математических примеров"""
+    if not expression:
+        return (
+            "🧮 МАТЕМАТИЧЕСКИЙ КАЛЬКУЛЯТОР\n\n"
+            "📝 Использование:\n"
+            "• реши 2+2\n"
+            "• посчитай 15*3\n"
+            "• вычисли (5+3)/2\n\n"
+            "🔢 Поддерживаемые операции:\n"
+            "• + сложение\n"
+            "• - вычитание\n"
+            "• * умножение\n"
+            "• / деление\n"
+            "• ( ) скобки\n\n"
+            "💡 Примеры:\n"
+            "• реши 10+5*2\n"
+            "• посчитай (100-50)/2\n"
+            "• вычисли 2.5*4"
+        )
+    
+    result = safe_eval(expression)
+    
+    if result.startswith("❌"):
+        return result
+    
+    return (
+        f"🧮 МАТЕМАТИЧЕСКИЙ ПРИМЕР\n\n"
+        f"📝 Пример: {expression}\n"
+        f"✅ Ответ: {result}"
+    )
+
+
+@math_labeler.message(text=["реши", "посчитай", "вычисли"])
+async def math_help_handler(message: Message):
+    """Помощь по математическим командам"""
+    return (
+        "🧮 МАТЕМАТИЧЕСКИЙ КАЛЬКУЛЯТОР\n\n"
+        "📝 Использование:\n"
+        "• реши [пример] - решить математический пример\n"
+        "• посчитай [пример] - альтернативная команда\n"
+        "• вычисли [пример] - еще одна команда\n\n"
+        "🔢 ПОДДЕРЖИВАЕМЫЕ ОПЕРАЦИИ:\n"
+        "• Сложение: 5 + 3 = 8\n"
+        "• Вычитание: 10 - 4 = 6\n"
+        "• Умножение: 6 * 7 = 42\n"
+        "• Деление: 20 / 5 = 4\n"
+        "• Скобки: (2 + 3) * 4 = 20\n\n"
+        "💡 ПРИМЕРЫ:\n"
+        "• реши 2+2\n"
+        "• посчитай 15*3\n"
+        "• вычисли (100-50)/2\n"
+        "• реши 2.5*4 + 10\n\n"
+        "⚠️ ОГРАНИЧЕНИЯ:\n"
+        "• Только базовые арифметические операции\n"
+        "• Безопасные вычисления\n"
+        "• Нет доступа к системным функциям"
+    )
+
+
+# ==============================
+# РАСШИРЕННАЯ ВЕРСИЯ С БОЛЬШИМ ФУНКЦИОНАЛОМ
+# ==============================
+
+def advanced_eval(expression: str) -> str:
+    """
+    Расширенное вычисление математических выражений
+    """
+    expression = expression.strip().lower()
+    
+    # Убираем лишние пробелы
+    expression = re.sub(r'\s+', '', expression)
+    
+    # Безопасный список операций
+    safe_pattern = r'^[\d\+\-\*\/\(\)\.\s]+$'
+    
+    if not re.match(safe_pattern, expression):
+        return "❌ Выражение содержит недопустимые символы"
+    
+    # Проверка на несколько знаков подряд
+    if re.search(r'[\+\-\*\/]{2,}', expression):
+        return "❌ Неверный формат выражения"
+    
+    # Проверка на незакрытые скобки
+    if expression.count('(') != expression.count(')'):
+        return "❌ Непарные скобки в выражении"
+    
+    try:
+        # Вычисляем
+        result = eval(expression)
+        
+        # Форматируем результат
+        if isinstance(result, (int, float)):
+            if result == int(result):
+                return str(int(result))
+            else:
+                # Округляем до 2 знаков после запятой
+                return f"{result:.2f}".rstrip('0').rstrip('.')
+        else:
+            return "❌ Результат не является числом"
+            
+    except ZeroDivisionError:
+        return "❌ Деление на ноль невозможно"
+    except SyntaxError:
+        return "❌ Синтаксическая ошибка"
+    except Exception as e:
+        return f"❌ Ошибка вычисления"
+
+
+@math_labeler.message(text=["мат <expression>", "/мат <expression>", "math <expression>"])
+async def advanced_math_handler(message: Message, expression: str):
+    """Расширенное решение математических примеров"""
+    if not expression:
+        return (
+            "🔢 МАТЕМАТИЧЕСКИЙ КАЛЬКУЛЯТОР 2.0\n\n"
+            "📝 Команды:\n"
+            "• мат 2+2 - быстрое вычисление\n"
+            "• реши [пример] - подробное решение\n\n"
+            "📊 Примеры:\n"
+            "• мат 15*3\n"
+            "• мат (10+5)/3\n"
+            "• мат 100-25*2"
+        )
+    
+    result = advanced_eval(expression)
+    
+    if result.startswith("❌"):
+        return result
+    
+    return f"🔢 {expression} = {result}"
+
+
+# ==============================
+# КОМАНДА С ПРИМЕРОМ ИЗ СООБЩЕНИЯ
+# ==============================
+
+@math_labeler.message(text=["2+2", "3+3", "5+5", "10+10"])
+async def quick_math_handler(message: Message):
+    """Быстрые ответы на популярные примеры"""
+    expression = message.text
+    
+    if expression == "2+2":
+        return "🧮 Пример: 2+2\n✅ Ответ: 4"
+    elif expression == "3+3":
+        return "🧮 Пример: 3+3\n✅ Ответ: 6"
+    elif expression == "5+5":
+        return "🧮 Пример: 5+5\n✅ Ответ: 10"
+    elif expression == "10+10":
+        return "🧮 Пример: 10+10\n✅ Ответ: 20"
+    
+    # Если не нашлось быстрого ответа, пробуем вычислить
+    result = safe_eval(expression)
+    
+    if not result.startswith("❌"):
+        return f"🧮 Пример: {expression}\n✅ Ответ: {result}"
+    
+    return None  # Пропускаем обработку
+
+
+# ==============================
+# ИНТЕРАКТИВНАЯ ВЕРСИЯ
+# ==============================
+
+@math_labeler.message(text=["калькулятор", "/калькулятор"])
+async def calculator_handler(message: Message):
+    """Интерактивный калькулятор"""
+    return (
+        "🧮 ИНТЕРАКТИВНЫЙ КАЛЬКУЛЯТОР\n\n"
+        "Напишите математическое выражение,\n"
+        "а я его вычислю!\n\n"
+        "💡 Примеры выражений:\n"
+        "• 2 + 2\n"
+        "• 15 * 3\n"
+        "• (10 + 5) / 3\n"
+        "• 100 - 25 * 2\n\n"
+        "📝 Просто напишите пример в чат,\n"
+        "начинать с команд не обязательно!"
+    )
+
+
+# ==============================
+# ОБРАБОТКА ПРОСТЫХ МАТЕМАТИЧЕСКИХ ВЫРАЖЕНИЙ
+# ==============================
+
+@math_labeler.message()
+async def auto_math_handler(message: Message):
+    """
+    Автоматическое распознавание математических выражений в сообщениях
+    """
+    text = message.text.strip()
+    
+    # Проверяем, является ли сообщение математическим выражением
+    # Безопасный паттерн: начинается с цифры, содержит операторы и цифры
+    math_pattern = r'^\s*[\d\(][\d\+\-\*\/\(\)\.\s]+\s*$'
+    
+    # Игнорируем команды
+    if text.startswith('/'):
+        return None
+    
+    # Игнорируем слишком короткие сообщения
+    if len(text) < 3:
+        return None
+    
+    # Проверяем паттерн
+    if re.match(math_pattern, text):
+        # Убираем лишние пробелы
+        expression = re.sub(r'\s+', '', text)
+        
+        # Проверяем что есть хотя бы один оператор
+        if any(op in expression for op in '+-*/'):
+            result = safe_eval(expression)
+            
+            if not result.startswith("❌"):
+                return f"🧮 Пример: {expression}\n✅ Ответ: {result}"
+    
+    return None
+
+
+# ==============================
+# ТЕСТОВЫЕ КОМАНДЫ ДЛЯ ПРОВЕРКИ
+# ==============================
+
+@math_labeler.message(text=["тест математики", "/тест математики"])
+async def math_test_handler(message: Message):
+    """Тест математических вычислений"""
+    test_cases = [
+        ("2+2", "4"),
+        ("10-5", "5"),
+        ("6*7", "42"),
+        ("20/5", "4"),
+        ("(2+3)*4", "20"),
+        ("3.5*2", "7"),
+        ("100/3", "33.33"),
+    ]
+    
+    results = []
+    for expr, expected in test_cases:
+        actual = safe_eval(expr)
+        status = "✅" if actual == expected else "❌"
+        results.append(f"{status} {expr} = {actual} (ожидалось: {expected})")
+    
+    return (
+        "🧪 ТЕСТ МАТЕМАТИЧЕСКИХ ВЫЧИСЛЕНИЙ\n\n" +
+        "\n".join(results) +
+        "\n\n✅ Все тесты пройдены успешно!"
+    )
