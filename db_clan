@@ -1,0 +1,81 @@
+# В bot/db/clans.py добавить:
+
+async def get_clan_by_tag(tag: str):
+    """Получить клан по тегу"""
+    return await db.clans.find_one({"tag": tag.upper()})
+
+async def update_clan_name(clan_id: int, new_name: str):
+    """Обновить название клана"""
+    await db.clans.update_one(
+        {"_id": clan_id},
+        {"$set": {"name": new_name}}
+    )
+
+async def delete_clan(clan_id: int):
+    """Удалить клан"""
+    # Удаляем клан
+    await db.clans.delete_one({"_id": clan_id})
+    
+    # Сбрасываем clan_id у всех участников
+    await db.players.update_many(
+        {"clan_id": clan_id},
+        {"$set": {"clan_id": None, "clan_role": None}}
+    )
+    
+    # Удаляем логи казны
+    await db.clan_treasury_log.delete_many({"clan_id": clan_id})
+    
+    # Удаляем логи действий
+    await db.clan_actions_log.delete_many({"clan_id": clan_id})
+
+async def update_clan_description(clan_id: int, description: str):
+    """Обновить описание клана"""
+    await db.clans.update_one(
+        {"_id": clan_id},
+        {"$set": {"description": description}}
+    )
+
+async def get_clan_log(clan_id: int, limit: int = 20):
+    """Получить лог действий клана"""
+    return await db.clan_actions_log.find(
+        {"clan_id": clan_id}
+    ).sort("created_at", -1).limit(limit).to_list(None)
+
+async def log_clan_action(clan_id: int, user_id: int, action_type: str, details: str):
+    """Записать действие в лог клана"""
+    await db.clan_actions_log.insert_one({
+        "clan_id": clan_id,
+        "user_id": user_id,
+        "action_type": action_type,
+        "details": details,
+        "created_at": datetime.now().isoformat()
+    })
+
+async def get_clan_requirements(clan_id: int):
+    """Получить требования для вступления"""
+    clan = await db.clans.find_one({"_id": clan_id})
+    return clan.get("settings", {}).get("requirements", {}) if clan else {}
+
+async def get_player_contributions(user_id: int, clan_id: int):
+    """Получить вклады игрока в клан"""
+    # Суммируем все депозиты игрока в казну
+    deposits = await db.clan_treasury_log.aggregate([
+        {"$match": {
+            "clan_id": clan_id,
+            "user_id": user_id,
+            "action_type": "deposit"
+        }},
+        {"$group": {
+            "_id": None,
+            "total": {"$sum": "$amount"}
+        }}
+    ]).to_list(None)
+    
+    return deposits[0]["total"] if deposits else 0
+
+async def update_clan_settings(clan_id: int, settings: dict):
+    """Обновить настройки клана"""
+    await db.clans.update_one(
+        {"_id": clan_id},
+        {"$set": {"settings": settings}}
+    )
