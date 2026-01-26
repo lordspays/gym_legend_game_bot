@@ -1,0 +1,69 @@
+# Добавить импорт методов бизнеса
+from .business import (
+    get_business_income,
+    collect_business_income,
+    collect_all_businesses,
+    withdraw_from_business,
+    upgrade_all_stages,
+)
+
+# Обновить метод buy_business для установки времени последнего сбора
+async def buy_business(user_id: int, business_id: int, business: dict):
+    """Покупка бизнеса"""
+    await db.players.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {
+                f"business_{business_id}_level": 1,
+                f"business_{business_id}_upgrades": {},
+                f"business_{business_id}_balance": 0,
+                f"business_{business_id}_last_collect": datetime.now().isoformat()
+            },
+            "$inc": {
+                "balance": -business["base_price"] if business["currency"] == "монет" else 0,
+                "strength": -business["base_price"] if business["currency"] == "силы" else 0
+            }
+        }
+    )
+
+# Обновить метод upgrade_business
+async def upgrade_business(user_id: int, business_id: int, upgrade_num: int, upgrade_price: int):
+    """Улучшение бизнеса"""
+    business = settings.BUSINESSES[business_id]
+    
+    # Получаем игрока
+    player = await get_player(user_id)
+    upgrades = player.get(f"business_{business_id}_upgrades", {})
+    current_level = upgrades.get(str(upgrade_num), 0)
+    
+    # Обновляем уровень улучшения
+    await db.players.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {
+                f"business_{business_id}_upgrades.{upgrade_num}": current_level + 1
+            },
+            "$inc": {
+                "balance": -upgrade_price if business["upgrade_currency"] == "монет" else 0,
+                "strength": -upgrade_price if business["upgrade_currency"] == "силы" else 0
+            }
+        }
+    )
+    
+    # Проверяем все ли улучшения выполнены
+    player = await get_player(user_id)
+    upgrades = player.get(f"business_{business_id}_upgrades", {})
+    completed_upgrades = sum(1 for v in upgrades.values() if v > 0)
+    
+    if completed_upgrades >= 5:
+        # Повышаем уровень бизнеса
+        current_business_level = player.get(f"business_{business_id}_level", 0)
+        await db.players.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    f"business_{business_id}_level": current_business_level + 1,
+                    f"business_{business_id}_upgrades": {}  # Сбрасываем улучшения
+                }
+            }
+        )
