@@ -1,0 +1,50 @@
+BUSINESSES = {
+    1: {
+        "name": "Спорт-бар",
+        "base_price": 150,  # монет
+        "currency": "монет",
+        "base_income": 5,  # монет в час
+        "income_increase": 5,  # +5 монет за уровень
+        "upgrade_price": 50,  # базовая цена улучшения
+        "upgrade_currency": "монет",
+        "upgrades": {
+            1: {"name": "Реклама", "emoji": "📢"},
+            2: {"name": "Персонал", "emoji": "👨‍🍳"},
+            3: {"name": "Оборудование", "emoji": "🍹"},
+            4: {"name": "Расширение", "emoji": "🏢"},
+            5: {"name": "Франшиза", "emoji": "🏷️"}
+        }
+    },
+    2: {
+        "name": "Фитнес-магазин",
+        "base_price": 35000,  # монет
+        "currency": "монет",
+        "base_income": 100,  # монет в час
+        "income_increase": 50,  # +50 монет за уровень
+        "upgrade_price": 500,  # базовая цена улучшения
+        "upgrade_currency": "монет",
+        "upgrades": {
+            1: {"name": "Реклама", "emoji": "📢"},
+            2: {"name": "Ассортимент", "emoji": "🛒"},
+            3: {"name": "Склад", "emoji": "📦"},
+            4: {"name": "Доставка", "emoji": "🚚"},
+            5: {"name": "Филиал", "emoji": "🏢"}
+        }
+    },
+    3: {
+        "name": "Силовой центр",
+        "base_price": 10000,  # СИЛЫ
+        "currency": "силы",
+        "base_income": 500,  # монет в час
+        "income_increase": 100,  # +100 монет за уровень
+        "upgrade_price": 300,  # базовая цена улучшения
+        "upgrade_currency": "силы",
+        "upgrades": {
+            1: {"name": "Тренажеры", "emoji": "🏋️"},
+            2: {"name": "Тренеры", "emoji": "👨‍🏫"},
+            3: {"name": "Питание", "emoji": "🍗"},
+            4: {"name": "Зал", "emoji": "🏢"},
+            5: {"name": "Франшиза", "emoji": "🏷️"}
+        }
+    }
+}
