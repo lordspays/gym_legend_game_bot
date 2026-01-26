@@ -1,0 +1,142 @@
+from datetime import datetime
+from bot.core.config import settings
+from bot.db import db, get_player
+
+async def get_business_income(user_id: int, business_id: int):
+    """Получить накопленный доход бизнеса"""
+    player = await get_player(user_id)
+    
+    if not player:
+        return 0
+    
+    business_key = f"business_{business_id}_last_collect"
+    
+    if business_key not in player or player[business_key] is None:
+        # Первый сбор, устанавливаем текущее время
+        await db.players.update_one(
+            {"user_id": user_id},
+            {"$set": {business_key: datetime.now().isoformat()}}
+        )
+        return 0
+    
+    last_collect = datetime.fromisoformat(player[business_key])
+    hours_passed = (datetime.now() - last_collect).total_seconds() / 3600
+    
+    business_level = player.get(f"business_{business_id}_level", 0)
+    if business_level == 0:
+        return 0
+    
+    business_config = settings.BUSINESSES[business_id]
+    hourly_income = (
+        business_config["base_income"] + 
+        (business_level - 1) * business_config["income_increase"]
+    )
+    
+    accumulated = int(hourly_income * hours_passed)
+    return max(0, accumulated)
+
+async def collect_business_income(user_id: int, business_id: int):
+    """Собрать накопленный доход бизнеса"""
+    income = await get_business_income(user_id, business_id)
+    if income <= 0:
+        return 0
+    
+    # Добавляем доход на баланс бизнеса
+    business_balance_key = f"business_{business_id}_balance"
+    await db.players.update_one(
+        {"user_id": user_id},
+        {
+            "$inc": {business_balance_key: income},
+            "$set": {f"business_{business_id}_last_collect": datetime.now().isoformat()}
+        }
+    )
+    
+    return income
+
+async def collect_all_businesses(user_id: int):
+    """Собрать доходы со всех бизнесов"""
+    total_collected = 0
+    
+    for business_id in settings.BUSINESSES:
+        income = await get_business_income(user_id, business_id)
+        if income > 0:
+            await collect_business_income(user_id, business_id)
+            total_collected += income
+    
+    return total_collected
+
+async def withdraw_from_business(user_id: int, business_id: int, amount: int):
+    """Снять деньги с баланса бизнеса"""
+    business_balance_key = f"business_{business_id}_balance"
+    player = await get_player(user_id)
+    
+    if not player:
+        return False, "Игрок не найден"
+    
+    current_balance = player.get(business_balance_key, 0)
+    
+    if current_balance < amount:
+        return False, "Недостаточно средств на балансе бизнеса"
+    
+    # Снимаем с бизнеса
+    await db.players.update_one(
+        {"user_id": user_id},
+        {"$inc": {business_balance_key: -amount}}
+    )
+    
+    return True, "Успешно"
+
+async def upgrade_all_stages(user_id: int, business_id: int):
+    """Улучшить все доступные этапы бизнеса"""
+    from bot.db import upgrade_business
+    
+    player = await get_player(user_id)
+    business_config = settings.BUSINESSES[business_id]
+    
+    # Проверяем уровень бизнеса
+    business_level = player.get(f"business_{business_id}_level", 0)
+    if business_level == 0:
+        return False, "Вы не владеете этим бизнесом"
+    
+    upgrades = player.get(f"business_{business_id}_upgrades", {})
+    completed_upgrades = sum(1 for v in upgrades.values() if v > 0)
+    
+    if completed_upgrades >= 5:
+        return False, "Все улучшения уже выполнены"
+    
+    total_cost = 0
+    stages_upgraded = 0
+    
+    # Улучшаем все недостающие этапы
+    for stage in range(1, 6):
+        if upgrades.get(str(stage), 0) == 0:
+            # Получаем стоимость улучшения
+            upgrade_cost = 0
+            if business_id == 1:
+                upgrade_costs = [50, 100, 150, 200, 250]
+                upgrade_cost = upgrade_costs[completed_upgrades + stages_upgraded]
+            elif business_id == 2:
+                upgrade_costs = [500, 550, 600, 650, 700]
+                upgrade_cost = upgrade_costs[completed_upgrades + stages_upgraded]
+            elif business_id == 3:
+                upgrade_costs = [300, 360, 420, 480, 540]
+                upgrade_cost = upgrade_costs[completed_upgrades + stages_upgraded]
+            
+            # Проверяем валюту
+            if business_config["upgrade_currency"] == "монет":
+                if player["balance"] < total_cost + upgrade_cost:
+                    break
+            else:
+                if player.get("strength", 0) < total_cost + upgrade_cost:
+                    break
+            
+            total_cost += upgrade_cost
+            stages_upgraded += 1
+            
+            # Обновляем улучшение
+            await upgrade_business(user_id, business_id, stage, upgrade_cost)
+    
+    if stages_upgraded == 0:
+        return False, "Недостаточно средств для улучшения"
+    
+    return True, f"Улучшено {stages_upgraded} этапов за {format_number(total_cost)} {business_config['upgrade_currency']}"
