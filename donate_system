@@ -1,0 +1,449 @@
+from vkbottle.bot import BotLabeler, Message
+
+donate_labeler = BotLabeler()
+donate_labeler.vbml_ignore_case = True
+
+# ==============================
+# КОНСТАНТЫ DONATE_SERVICES
+# ==============================
+
+DONATE_SERVICES = {
+    'farm_5': {
+        "name": "The Royal Farm 🌟",
+        "price_rub": 250,
+        "description": "Доступ к донатной ферме The Royal Farm",
+        "type": "farm_access",
+        "farm_id": 1,
+        "benefits": [
+            "В 2.5 раза больше дохода чем лучшая обычная ферма",
+            "Премиум статус в игре",
+            "Доход: 50 монет/день за единицу"
+        ]
+    },
+    'farm_6': {
+        "name": "The King of Muscle Legends 👑",
+        "price_rub": 750,
+        "description": "Доступ к донатной ферме The King of Muscle Legends",
+        "type": "farm_access",
+        "farm_id": 2,
+        "benefits": [
+            "В 5 раз больше дохода чем лучшая обычная ферма!",
+            "Максимальный доход в игре (100 монет/день)",
+            "VIP статус 'Король легенд'",
+            "Эксклюзивные возможности"
+        ]
+    },
+    'limit_x2': {
+        "name": "Лимит x2 для ферм",
+        "price_rub": 250,
+        "description": "Увеличение лимита всех ферм в 2 раза",
+        "type": "farm_limit",
+        "benefits": [
+            "Лимит обычных ферм: 250 → 500 единиц",
+            "Лимит донатных ферм: 250/300 → 500/600 единиц",
+            "В 2 раза больше возможностей для заработка"
+        ]
+    },
+    'info_access': {
+        "name": "Доступ к команде /инфа",
+        "price_rub": 50,
+        "description": "Доступ к просмотру полной информации об игроках",
+        "type": "info_access",
+        "benefits": [
+            "Просмотр полной информации об игроках",
+            "Доступ к статистике других игроков",
+            "Возможность анализа конкурентов"
+        ]
+    },
+    'max_dumbbell': {
+        "name": "Максимальная гантеля",
+        "price_rub": 150,
+        "description": "Гантеля 35кг (максимальный уровень)",
+        "type": "dumbbell",
+        "benefits": [
+            "Гантеля 35кг - максимальный уровень",
+            "Доход за подход: 55 монет",
+            "Сила за подход: 35 единиц",
+            "Мгновенный доступ к лучшей гантеле"
+        ]
+    },
+    'coins_35k': {
+        "name": "35.000 монет",
+        "price_rub": 700,
+        "description": "35.000 игровых монет",
+        "type": "coins",
+        "amount": 35000,
+        "benefits": [
+            "Мгновенное пополнение баланса",
+            "Возможность купить лучшие фермы",
+            "Ускорение прогресса в игре"
+        ]
+    },
+    'power_5k': {
+        "name": "5.000 силы",
+        "price_rub": 800,
+        "description": "5.000 силы",
+        "type": "power",
+        "amount": 5000,
+        "benefits": [
+            "Мгновенное пополнение силы",
+            "Возможность улучшать бизнесы",
+            "Преимущество в развитии"
+        ]
+    }
+}
+
+
+# ==============================
+# КОМАНДЫ ДОНАТА
+# ==============================
+
+@donate_labeler.message(text=["донат", "/донат", "донат услуги", "/донат услуги"])
+async def donate_handler(message: Message):
+    """Показать донат услуги"""
+    donate_info = []
+    
+    # Заголовок
+    donate_info.append("💰 DONATE УСЛУГИ GYM LEGEND")
+    donate_info.append("🎯 Ускорьте свой прогресс и получите эксклюзивные возможности!")
+    donate_info.append("")
+    
+    # Раздел 1: Донатные фермы
+    donate_info.append("🏗️ ДОНАТНЫЕ ФЕРМЫ:")
+    
+    for key, service in DONATE_SERVICES.items():
+        if service['type'] == 'farm_access':
+            donate_info.append(f"")
+            donate_info.append(f"🎁 {service['name']}")
+            donate_info.append(f"   💰 Цена: {service['price_rub']} рублей")
+            donate_info.append(f"   📝 {service['description']}")
+            for benefit in service['benefits']:
+                donate_info.append(f"   ✅ {benefit}")
+    
+    donate_info.append("")
+    
+    # Раздел 2: Улучшения
+    donate_info.append("⚡ УЛУЧШЕНИЯ:")
+    
+    improvements = ['limit_x2', 'info_access', 'max_dumbbell']
+    for key in improvements:
+        service = DONATE_SERVICES[key]
+        donate_info.append(f"")
+        donate_info.append(f"✨ {service['name']}")
+        donate_info.append(f"   💰 Цена: {service['price_rub']} рублей")
+        donate_info.append(f"   📝 {service['description']}")
+        for benefit in service['benefits']:
+            donate_info.append(f"   ✅ {benefit}")
+    
+    donate_info.append("")
+    
+    # Раздел 3: Ресурсы
+    donate_info.append("💎 ИГРОВЫЕ РЕСУРСЫ:")
+    
+    resources = ['coins_35k', 'power_5k']
+    for key in resources:
+        service = DONATE_SERVICES[key]
+        donate_info.append(f"")
+        donate_info.append(f"💼 {service['name']}")
+        donate_info.append(f"   💰 Цена: {service['price_rub']} рублей")
+        donate_info.append(f"   📝 {service['description']}")
+        for benefit in service['benefits']:
+            donate_info.append(f"   ✅ {benefit}")
+    
+    donate_info.append("")
+    
+    # Контакты для покупки
+    donate_info.append("👨‍💼 АДМИНИСТРАТОР ДЛЯ ПОКУПКИ:")
+    donate_info.append("   📲 ВКонтакте: @spaysex")
+    donate_info.append("   💬 Напишите администратору для покупки")
+    donate_info.append("")
+    
+    # Инструкция
+    donate_info.append("📋 КАК КУПИТЬ:")
+    donate_info.append("   1. Напишите администратору @spaysex")
+    donate_info.append("   2. Укажите какие услуги хотите купить")
+    donate_info.append("   3. Оплатите удобным способом")
+    donate_info.append("")
+    
+    # Примечания
+    donate_info.append("💡 ПРИМЕЧАНИЯ:")
+    donate_info.append("   • Гарантия доставки услуг")
+    donate_info.append("   • Поддержка 24/7")
+    donate_info.append("   • Безопасные платежи")
+    
+    return "\n".join(donate_info)
+
+
+@donate_labeler.message(text=["донат помощь", "/донат помощь"])
+async def donate_help_handler(message: Message):
+    """Помощь по донат услугам"""
+    help_text = (
+        "💰 СИСТЕМА ДОНАТ УСЛУГ\n\n"
+        "📝 КОМАНДЫ:\n"
+        "• /донат - Посмотреть все донат услуги\n"
+        "• /донат фермы - Посмотреть только фермы\n"
+        "• /донат улучшения - Посмотреть только улучшения\n"
+        "• /донат ресурсы - Посмотреть только ресурсы\n\n"
+        "👨‍💼 КОНТАКТЫ:\n"
+        "• Администратор: @spaysex\n"
+        "• Напишите для покупки услуг\n\n"
+        "💡 ОПЛАТА:\n"
+        "• Qiwi, Сбербанк, Тинькофф\n"
+        "• Банковские карты\n"
+        "• Другие способы по договоренности\n\n"
+        "✅ ГАРАНТИИ:\n"
+        "• Мгновенная доставка\n"
+        "• Поддержка 24/7\n"
+        "• Возврат при проблемах"
+    )
+    
+    return help_text
+
+
+@donate_labeler.message(text=["донат фермы", "/донат фермы"])
+async def donate_farms_handler(message: Message):
+    """Показать только донатные фермы"""
+    donate_info = []
+    
+    donate_info.append("🏗️ ДОНАТНЫЕ ФЕРМЫ")
+    donate_info.append("")
+    
+    for key, service in DONATE_SERVICES.items():
+        if service['type'] == 'farm_access':
+            donate_info.append(f"🎁 {service['name']}")
+            donate_info.append(f"   💰 Цена: {service['price_rub']} рублей")
+            donate_info.append(f"   📝 {service['description']}")
+            for benefit in service['benefits']:
+                donate_info.append(f"   ✅ {benefit}")
+            donate_info.append("")
+    
+    donate_info.append("👨‍💼 Администратор: @spaysex")
+    donate_info.append("💬 Напишите для покупки")
+    
+    return "\n".join(donate_info)
+
+
+@donate_labeler.message(text=["донат улучшения", "/донат улучшения"])
+async def donate_improvements_handler(message: Message):
+    """Показать только улучшения"""
+    donate_info = []
+    
+    donate_info.append("⚡ ДОНАТНЫЕ УЛУЧШЕНИЯ")
+    donate_info.append("")
+    
+    improvements = ['limit_x2', 'info_access', 'max_dumbbell']
+    for key in improvements:
+        service = DONATE_SERVICES[key]
+        donate_info.append(f"✨ {service['name']}")
+        donate_info.append(f"   💰 Цена: {service['price_rub']} рублей")
+        donate_info.append(f"   📝 {service['description']}")
+        for benefit in service['benefits']:
+            donate_info.append(f"   ✅ {benefit}")
+        donate_info.append("")
+    
+    donate_info.append("👨‍💼 Администратор: @spaysex")
+    donate_info.append("💬 Напишите для покупки")
+    
+    return "\n".join(donate_info)
+
+
+@donate_labeler.message(text=["донат ресурсы", "/донат ресурсы"])
+async def donate_resources_handler(message: Message):
+    """Показать только ресурсы"""
+    donate_info = []
+    
+    donate_info.append("💎 ДОНАТНЫЕ РЕСУРСЫ")
+    donate_info.append("")
+    
+    resources = ['coins_35k', 'power_5k']
+    for key in resources:
+        service = DONATE_SERVICES[key]
+        donate_info.append(f"💼 {service['name']}")
+        donate_info.append(f"   💰 Цена: {service['price_rub']} рублей")
+        donate_info.append(f"   📝 {service['description']}")
+        for benefit in service['benefits']:
+            donate_info.append(f"   ✅ {benefit}")
+        donate_info.append("")
+    
+    donate_info.append("👨‍💼 Администратор: @spaysex")
+    donate_info.append("💬 Напишите для покупки")
+    
+    return "\n".join(donate_info)
+
+
+# ==============================
+# АДМИН КОМАНДЫ ДЛЯ АКТИВАЦИИ ДОНАТ УСЛУГ
+# ==============================
+
+@donate_labeler.message(text=["донат активировать <user> <service>", "/донат активировать <user> <service>"])
+async def activate_donate_handler(message: Message, user: str, service: str):
+    """Активировать донат услугу для игрока (админ команда)"""
+    user_id = message.from_id
+    
+    # Проверка админ прав (нужно добавить вашу логику проверки)
+    # if not await is_admin(user_id):
+    #     return "❌ Только администраторы могут активировать донат услуги!"
+    
+    # Парсим ID пользователя
+    target_id = None
+    if user.startswith("[id"):
+        try:
+            target_id = int(user.split("|")[0][3:])
+        except:
+            pass
+    elif user.startswith("@id"):
+        try:
+            target_id = int(user[3:])
+        except:
+            pass
+    elif user.isdigit():
+        target_id = int(user)
+    
+    if not target_id:
+        return "❌ Укажите игрока в формате: @id123, [id123|Имя] или просто ID"
+    
+    # Проверяем что услуга существует
+    if service not in DONATE_SERVICES:
+        return f"❌ Услуга '{service}' не найдена!\n💡 Доступные услуги: farm_5, farm_6, limit_x2, info_access, max_dumbbell, coins_35k, power_5k"
+    
+    donate_service = DONATE_SERVICES[service]
+    
+    # Получаем информацию об игроке
+    target_player = await get_player(target_id)
+    if not target_player:
+        return f"❌ Игрок с ID {target_id} не найден в системе!"
+    
+    # Активируем услугу
+    result = await activate_donate_service(target_id, service, user_id)
+    
+    if result["success"]:
+        return (
+            f"✅ Донат услуга активирована!\n\n"
+            f"👤 Игрок: [id{target_id}|{target_player['username']}]\n"
+            f"🎁 Услуга: {donate_service['name']}\n"
+            f"💰 Стоимость: {donate_service['price_rub']} рублей\n"
+            f"👨‍💼 Активировал: [id{user_id}|{await get_player(user_id)['username']}]"
+        )
+    else:
+        return f"❌ Ошибка активации: {result['error']}"
+
+
+async def activate_donate_service(user_id: int, service_key: str, admin_id: int):
+    """Активация донат услуги"""
+    if service_key not in DONATE_SERVICES:
+        return {"success": False, "error": "Услуга не найдена!"}
+    
+    service = DONATE_SERVICES[service_key]
+    
+    try:
+        if service['type'] == 'farm_access':
+            # Активация доступа к донатной ферме
+            if service['farm_id'] == 1:
+                await db.donate_farm_access.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"has_farm_1_access": True, "farm_1_banned": False}},
+                    upsert=True
+                )
+            elif service['farm_id'] == 2:
+                await db.donate_farm_access.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"has_farm_2_access": True, "farm_2_banned": False}},
+                    upsert=True
+                )
+            
+            action_type = f'activate_farm_{service["farm_id"]}'
+            
+        elif service['type'] == 'farm_limit':
+            # Активация лимита x2
+            await db.mining_farms.update_one(
+                {"user_id": user_id},
+                {"$set": {"has_limit_x2": True}}
+            )
+            
+            action_type = 'activate_limit_x2'
+            
+        elif service['type'] == 'info_access':
+            # Активация доступа к /инфа
+            await db.info_access.update_one(
+                {"user_id": user_id},
+                {
+                    "$set": {
+                        "has_info_access": True,
+                        "granted_by": admin_id,
+                        "granted_at": datetime.now().isoformat()
+                    }
+                },
+                upsert=True
+            )
+            
+            action_type = 'activate_info_access'
+            
+        elif service['type'] == 'dumbbell':
+            # Выдача максимальной гантели
+            await db.players.update_one(
+                {"user_id": user_id},
+                {"$set": {"dumbbell_level": 20, "dumbbell_name": "Гантеля 35кг"}}
+            )
+            
+            action_type = 'activate_max_dumbbell'
+            
+        elif service['type'] == 'coins':
+            # Выдача монет
+            amount = service['amount']
+            await db.players.update_one(
+                {"user_id": user_id},
+                {"$inc": {"balance": amount}}
+            )
+            
+            # Логируем транзакцию
+            await db.transactions.insert_one({
+                "user_id": user_id,
+                "type": "donate_coins",
+                "amount": amount,
+                "description": f"Донат: {service['name']}",
+                "admin_id": admin_id,
+                "created_at": datetime.now().isoformat()
+            })
+            
+            action_type = 'activate_coins'
+            
+        elif service['type'] == 'power':
+            # Выдача силы
+            amount = service['amount']
+            await db.players.update_one(
+                {"user_id": user_id},
+                {"$inc": {"strength": amount}}
+            )
+            
+            # Логируем действие
+            await db.admin_actions.insert_one({
+                "admin_id": admin_id,
+                "action_type": "add_power",
+                "target_user_id": user_id,
+                "details": f"Донат: {service['name']} - {amount} силы",
+                "created_at": datetime.now().isoformat()
+            })
+            
+            action_type = 'activate_power'
+        
+        else:
+            return {"success": False, "error": "Неизвестный тип услуги!"}
+        
+        # Логируем активацию
+        await db.admin_actions.insert_one({
+            "admin_id": admin_id,
+            "action_type": action_type,
+            "target_user_id": user_id,
+            "details": f"Активирована донат услуга: {service['name']} ({service['price_rub']} руб.)",
+            "created_at": datetime.now().isoformat()
+        })
+        
+        return {
+            "success": True,
+            "service_name": service['name'],
+            "price_rub": service['price_rub'],
+            "user_id": user_id
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": f"Ошибка активации: {str(e)}"}
