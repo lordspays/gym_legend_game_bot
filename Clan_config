@@ -1,0 +1,15 @@
+def get_clan_bonuses(level: int):
+    """Получить бонусы клана по уровню"""
+    # Бизнесы: 5% на 1 уровне, +1% за каждый уровень
+    # Поднятия: 1 монета на 1 уровне, +1 монета за каждый уровень
+    business_bonus_percent = 5 + (level - 1) * 1
+    lift_bonus_coins = 1 + (level - 1) * 1
+    
+    # Лимит участников (если нужен)
+    member_limit = 20 + (level - 1) * 5  # 20 на 1 уровне, +5 за каждый уровень
+    
+    return {
+        "business_bonus_percent": business_bonus_percent,
+        "lift_bonus_coins": lift_bonus_coins,
+        "member_limit": member_limit
+    }
